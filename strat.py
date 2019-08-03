@@ -12,9 +12,8 @@ score = 0
 
 def make_first_ls(ls):
     learning_state = {
-        'direction': int(ls['direction']),
-        'pos_x': int(ls['pos_x']),
-        'pos_y': int(ls['pos_y']),
+        'pos_x': ls['pos_x'],
+        'pos_y': ls['pos_y'],
     }
     cells = [1 for _ in range(31*31)]
     for cell_i in range(len(cells)):
@@ -63,19 +62,24 @@ def make_ls(lstate):
     cells[x * y] = -1
 
     learning_state = {
-        'direction': int(direction),
-        'pos_x': int(ls['position'][0]),
-        'pos_y': int(ls['position'][1]),
+        'pos_x': ls['position'][0]/1000,
+        'pos_y': ls['position'][1]/1000,
     }
 
     for cell_i in range(len(cells)):
         learning_state[f'cell{cell_i}'] = cells[cell_i]
 
-    reward = ls['score'] - (score + 1 - (lstate['params'].get('tick_num', 0)/1500))
+    reward = ls['score'] - (score)
     return learning_state, reward
 
 
-model = Net(964, 128, 4)
+model = Net(963, 1024, 4)
+try:
+    model.load_state_dict(torch.load('params/param19'))
+    model.eval()
+except FileNotFoundError:
+    pass
+
 activation = nn.Softmax(dim=0)
 states, actions = [], []
 total_reward = 0
@@ -91,10 +95,12 @@ def get_command(state):
 
 
 s = None
+tick = 1
 
 while True:
     try:
         new_s = json.loads(input())
+        tick = new_s.get('params', {}).get('tick_num', 1)
         new_s, r = make_ls(new_s)
         new_s = new_s
     except:
@@ -118,6 +124,9 @@ while True:
 
     print(json.dumps({"command": a, 'debug': str(new_s)}))
 
+if tick == 0:
+    tick = 1
+total_reward = total_reward - (20/tick)
 with open('log', 'w') as f:
     f.write(
         str(states)+'\n'
