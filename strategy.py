@@ -21,8 +21,8 @@ class PolicyEstimator(nn.Module):
 
         # Define network
         self.network = nn.Sequential(
-            nn.Linear(self.n_inputs, 32),
-            nn.ReLU(),
+            nn.Linear(self.n_inputs, 128),
+            nn.Linear(128, 32),
             nn.Linear(32, self.n_outputs),
             nn.Softmax(dim=-1)
         )
@@ -91,7 +91,7 @@ def make_ls(lstate):
     for cell_i in range(len(cells)):
         learning_state[f'cell{cell_i}'] = cells[cell_i]
 
-    reward = ls['score'] - (score)
+    reward = ls['score'] - (score + 1)
 
     with open('state', 'w') as f:
         f.write(str(lstate))
@@ -115,11 +115,11 @@ states = []
 rewards = []
 actions = []
 
-pe = PolicyEstimator()
-optimizer = optim.Adam(pe.network.parameters(), lr=0.01)
+model = PolicyEstimator()
+optimizer = optim.Adam(model.network.parameters(), lr=0.01)
 
-pe.load_state_dict(torch.load(PATH))
-pe.eval()
+model.load_state_dict(torch.load(PATH))
+model.eval()
 
 
 while True:
@@ -149,7 +149,7 @@ while True:
 
         # Calculate loss
         logprob = torch.log(
-            pe.predict(state_tensor))
+            model.predict(state_tensor))
         selected_logprobs = reward_tensor * \
                             logprob[np.arange(len(action_tensor)), action_tensor]
         loss = -selected_logprobs.mean()
@@ -168,7 +168,7 @@ while True:
             )
 
         if np.mean(total_rewards[-10:]) > 0 and flag:
-            torch.save(pe.state_dict(), PATH + f'(больше 0)-{datetime.datetime.now()}')
+            torch.save(model.state_dict(), PATH + f'(больше 0)-{datetime.datetime.now()}')
             flag = False
         elif not flag:
             flag = True
@@ -177,7 +177,7 @@ while True:
 
     ls, reward = make_ls(state)
 
-    action_probs = pe.predict(list(ls.values())).detach().numpy()
+    action_probs = model.predict(list(ls.values())).detach().numpy()
 
     action = np.random.choice([0,1,2,3], p=action_probs)
     cmd = commands[action]
@@ -188,7 +188,7 @@ while True:
 
     print(json.dumps({"command": cmd, 'debug': str(cmd)}))
 
-torch.save(pe.state_dict(), PATH)
+torch.save(model.state_dict(), PATH)
 
 if datetime.datetime.now().second % 15 in (0, 5, 3):
-    torch.save(pe.state_dict(), PATH+f'-{datetime.datetime.now()}')
+    torch.save(model.state_dict(), PATH+f'-{datetime.datetime.now()}')
