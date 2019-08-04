@@ -2,10 +2,13 @@ import json
 import numpy as np
 import torch
 from torch import nn
+import json
+import numpy as np
+import torch
+from torch import nn
 from collections import OrderedDict
 config = json.loads(input())
 score = 0
-
 
 
 class Net(nn.Module):
@@ -33,7 +36,6 @@ class Net(nn.Module):
         output = output.view(img.size(0), -1)
         output = self.fc(output)
         return output
-
 
 
 def make_first_ls(ls):
@@ -166,4 +168,10 @@ if tick < 50:
 elif tick <= 120:
     total_reward = total_reward - tick
 total_reward = total_reward - (20/tick)
+with open('log', 'w') as f:
+    f.write(
+        str(states)+'\n'
+        + str(actions)+'\n'
+        + str(total_reward)
+    )
 
