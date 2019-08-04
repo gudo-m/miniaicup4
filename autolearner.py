@@ -16,19 +16,19 @@ class Net(nn.Module):
         super(Net, self).__init__()
         self.convnet = nn.Sequential(OrderedDict([
             ('c1', nn.Conv2d(1, 6, kernel_size=(4, 4))),
-            ('relu1', nn.ReLU()),
+            ('act1', nn.Sigmoid()),
             ('s2', nn.MaxPool2d(kernel_size=(2, 2), stride=2)),
             ('c3', nn.Conv2d(6, 16, kernel_size=(4, 4))),
-            ('relu3', nn.ReLU()),
+            ('act2', nn.ReLU()),
             ('s4', nn.MaxPool2d(kernel_size=(2, 2), stride=2)),
             ('c5', nn.Conv2d(16, 120, kernel_size=(4, 4))),
-            ('relu5', nn.ReLU())
+            ('act3', nn.Tanh())
         ]))
 
         self.fc = nn.Sequential(OrderedDict([
-            ('f6', nn.Linear(480, 84)),
-            ('sigmoid', nn.Sigmoid()),
-            ('f7', nn.Linear(84, 4)),
+            ('f6', nn.Linear(480, 128)),
+            ('act4', nn.ReLU()),
+            ('f7', nn.Linear(128, 4)),
         ]))
 
     def forward(self, img):

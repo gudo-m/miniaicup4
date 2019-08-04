@@ -7,34 +7,6 @@ config = json.loads(input())
 score = 0
 
 
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.convnet = nn.Sequential(OrderedDict([
-            ('c1', nn.Conv2d(1, 6, kernel_size=(4, 4))),
-            ('relu1', nn.ReLU()),
-            ('s2', nn.MaxPool2d(kernel_size=(2, 2), stride=2)),
-            ('c3', nn.Conv2d(6, 16, kernel_size=(4, 4))),
-            ('relu3', nn.ReLU()),
-            ('s4', nn.MaxPool2d(kernel_size=(2, 2), stride=2)),
-            ('c5', nn.Conv2d(16, 120, kernel_size=(4, 4))),
-            ('relu5', nn.ReLU())
-        ]))
-
-        self.fc = nn.Sequential(OrderedDict([
-            ('f6', nn.Linear(480, 84)),
-            ('act', nn.Sigmoid()),
-            ('f7', nn.Linear(84, 4)),
-        ]))
-
-    def forward(self, img):
-        output = self.convnet(img)
-        output = output.view(img.size(0), -1)
-        output = self.fc(output)
-        return output
-
-
-
 def make_first_ls(ls):
     learning_state = {}
     cells = [0.2 for _ in range(31*31)]
@@ -51,7 +23,7 @@ def edit_cells_by_player(cells, player):
     for my_cell in player['territory']:
         x = make_normal_coord(my_cell[0])
         y = make_normal_coord(my_cell[1])
-        cells[x * y] = 1.5
+        cells[x * y] = 1
     if player.get('lines', False):
         for line in player['lines']:
             x = make_normal_coord(line[0])
@@ -73,7 +45,7 @@ def make_ls(lstate):
     for my_cell in ls['territory']:
         x = make_normal_coord(my_cell[0])
         y = make_normal_coord(my_cell[1])
-        cells[x * y] = 1.25
+        cells[x * y] = 1.5
     if ls.get('lines', False):
         for line in ls['lines']:
             x = make_normal_coord(line[0])
