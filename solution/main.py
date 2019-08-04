@@ -23,7 +23,7 @@ class Net(nn.Module):
 
         self.fc = nn.Sequential(OrderedDict([
             ('f6', nn.Linear(480, 84)),
-            ('act', nn.Sigmoid()),
+            ('sigmoid', nn.Sigmoid()),
             ('f7', nn.Linear(84, 4)),
         ]))
 
