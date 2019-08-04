@@ -23,7 +23,7 @@ class Net(nn.Module):
 
         self.fc = nn.Sequential(OrderedDict([
             ('f6', nn.Linear(480, 84)),
-            ('relu6', nn.ReLU()),
+            ('act', nn.Sigmoid()),
             ('f7', nn.Linear(84, 4)),
         ]))
 
@@ -99,7 +99,7 @@ def make_ls(lstate):
 
 model = Net()
 try:
-    model.load_state_dict(torch.load('param19'))
+    model.load_state_dict(torch.load('params/param19'))
     model.eval()
 except FileNotFoundError:
     pass
@@ -120,6 +120,7 @@ def get_command(state):
 
 s = None
 tick = 1
+last_territory = []
 
 while True:
     try:
@@ -134,13 +135,17 @@ while True:
         s = list(make_first_ls(new_s).values())
     new_s = list(new_s.values())
 
+    territory = main_s['params']['players']['i']['territory']
+    if last_territory:
+        if len(territory) > len(last_territory):
+            r += 50
+    last_territory = territory
+
     commands = ['left', 'right', 'up', 'down']
 
     s_v = torch.FloatTensor(np.array(new_s).reshape([1, 1, 31, 31]))
     act_probs_v = activation(model(s_v)[0])
     act_probs = act_probs_v.data.numpy()
-    with open('vals', 'w') as f:
-        f.write(str(act_probs_v)+'\n'+str(act_probs))
     a = np.random.choice(commands, p=act_probs_v.detach().numpy())
     states.append(s)
     actions.append(commands.index(a))
@@ -156,4 +161,12 @@ if tick == 0:
     tick = 1
 if tick < 50:
     total_reward = -300
+elif tick <= 120:
+    total_reward = total_reward - tick
 total_reward = total_reward - (20/tick)
+with open('log', 'w') as f:
+    f.write(
+        str(states)+'\n'
+        + str(actions)+'\n'
+        + str(total_reward)
+    )

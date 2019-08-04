@@ -27,7 +27,7 @@ class Net(nn.Module):
 
         self.fc = nn.Sequential(OrderedDict([
             ('f6', nn.Linear(480, 84)),
-            ('relu6', nn.ReLU()),
+            ('sigmoid', nn.Sigmoid()),
             ('f7', nn.Linear(84, 4)),
         ]))
 
@@ -86,7 +86,7 @@ def filter_batch(states_batch, actions_batch, rewards_batch, percentile=50):
 if __name__ == '__main__':
     batch_size = 100
     session_size = 100
-    percentile = 70
+    percentile = 90
     hidden_size = 200
     learning_rate = 0.0025
     completion_score = 200
@@ -122,11 +122,11 @@ if __name__ == '__main__':
         loss_v.backward()
         optimizer.step()
 
-        torch.save(net.state_dict(), 'params/param19')
-        torch.save(net.state_dict(), 'params/param19' + f'-{datetime.datetime.now()}')
-
         # show results
         mean_reward = np.mean(batch_rewards),
         np.percentile(batch_rewards, percentile)
         print(f"{i}: loss={loss_v.item()}, reward_mean={mean_reward}")
+
+        torch.save(net.state_dict(), 'params/param19')
+        torch.save(net.state_dict(), 'params/param19' + f'-{datetime.datetime.now()}-reward{mean_reward}')
 
